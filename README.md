@@ -1,7 +1,9 @@
 # lumina
 
-Command-line control for Klipsch ProMedia Lumina 2.1 speakers on Linux:
-EQ presets and parametric bands, sound mode, subwoofer level, night mode,
+[![CI](https://github.com/wlof/lumina/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wlof/lumina/actions/workflows/ci.yml?query=branch%3Amain)
+
+Command-line control for Klipsch ProMedia Lumina 2.1 speakers on Linux and
+other platforms: EQ presets and parametric bands, sound mode, subwoofer level, night mode,
 input, lighting effects and per-LED colours, and the other settings of
 Klipsch's Windows app, Klipsch Control. For lighting synced with other RGB
 devices, [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB) also
@@ -19,12 +21,15 @@ has been run against real speakers (firmware 1.0.3) and checked by reading
 the state back. Sound mode, EQ, subwoofer level, night mode, mute and input
 were also checked by listening, and every lighting effect by eye.
 
+CI builds and tests every platform below against a simulated device; only
+Linux has been tried with real speakers.
+
 | Platform | State |
 |----------|-------|
-| Linux | Works, tested |
-| FreeBSD | Should work (same hidapi/libusb path as the OpenRGB driver), not built yet |
-| Windows | Should work (hid.dll, like Klipsch Control), not built yet |
-| macOS | Untested; unknown whether macOS exposes the speakers' control interface |
+| Linux | Works, tested on hardware |
+| FreeBSD | Builds and passes CI; should work (same hidapi/libusb path as the OpenRGB driver) |
+| Windows | Builds and passes CI; should work (hid.dll, like Klipsch Control) |
+| macOS | Builds and passes CI; unknown whether macOS exposes the speakers' control interface |
 
 ## Compared with Klipsch Control
 
@@ -88,11 +93,15 @@ were also checked by listening, and every lighting effect by eye.
 
 ## Build
 
-Needs a C compiler and pkg-config. On Linux also the libusb headers
-(`libusb-1.0` / `libusb-1.0-0-dev`), on FreeBSD the `hidapi` package.
+Needs Rust 1.88 or later and a C compiler. With rustup,
+`rust-toolchain.toml` selects the toolchain CI uses. On Linux also
+pkg-config and the libusb headers (`libusb-1.0` / `libusb-1.0-0-dev`); on
+FreeBSD pkg-config and the `hidapi` package. Windows and macOS need nothing
+else.
 
 ```
-cargo build --release
+cargo build --release                            # target/release/lumina
+cargo install --locked --path crates/lumina-cli  # or into ~/.cargo/bin
 ```
 
 ## Permissions (Linux)
@@ -156,6 +165,15 @@ of range are refused before anything is sent.
 - `--serial` picks speakers by USB serial number, but the tested set reports
   `20190808`, which looks like a fixed value. With two sets connected it
   probably cannot tell them apart; untested.
+
+## Library
+
+The CLI is built on the `lumina` library crate
+([crates/lumina](crates/lumina)), which other front ends can use directly:
+`Lumina::open` finds the speakers, typed setters change settings and
+`state()` reads them all back. Its `sim` feature provides a simulated device
+that behaves like the real speakers, for developing and testing without
+hardware. `cargo doc --open -p lumina` shows the API.
 
 ## Development
 

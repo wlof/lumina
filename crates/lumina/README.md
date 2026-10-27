@@ -16,5 +16,6 @@ if let Some(db) = speakers.state()?.sub_level {
 # Ok::<(), lumina::Error>(())
 ```
 
-See the [repository README](../../README.md) for platform support and the
-protocol notes.
+See the [repository README](https://github.com/wlof/lumina#readme) for
+platform support and the
+[protocol notes](https://github.com/wlof/lumina/blob/main/docs/protocol.md).
