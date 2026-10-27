@@ -14,6 +14,8 @@ categories.workspace = true
 [[bin]]
 name = "lumina"
 path = "src/main.rs"
+# Same name as the library crate, whose docs it would overwrite
+doc = false
 
 [dependencies]
 lumina = { workspace = true, features = ["serde"] }
