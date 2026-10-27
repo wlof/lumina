@@ -1,0 +1,2 @@
+# Klipsch ProMedia Lumina: let the logged-in user claim the vendor interface
+SUBSYSTEM=="usb", ATTRS{idVendor}=="18b5", ATTRS{idProduct}=="0070", TAG+="uaccess"

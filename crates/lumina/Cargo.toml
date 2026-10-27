@@ -1,0 +1,32 @@
+[package]
+name = "lumina"
+description = "Control library for Klipsch ProMedia Lumina speakers"
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+hidapi.workspace = true
+thiserror.workspace = true
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest.workspace = true
+
+[features]
+## Serialize `State` and the setting types (used by `lumina status --json`).
+serde = ["dep:serde"]
+## `sim::Simulator`, a simulated device for tests and front-end development.
+sim = []
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

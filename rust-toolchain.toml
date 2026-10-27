@@ -1,0 +1,6 @@
+# Pinned so that new lints in a Rust release cannot break CI unannounced.
+# Bump deliberately: update the version here, run `just ci`, fix what it finds.
+[toolchain]
+channel = "1.99.1"
+components = ["rustfmt", "clippy", "llvm-tools-preview"]
+profile = "minimal"

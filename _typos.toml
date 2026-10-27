@@ -1,0 +1,13 @@
+[files]
+extend-exclude = ["Cargo.lock"]
+
+[default]
+# Hex dumps and byte sequences in docs and tests
+extend-ignore-re = [
+  "(?:[0-9a-fA-F]{2} ){3,}[0-9a-fA-F]{2}",
+  "\\b[0-9A-Fa-f]{6,}\\b",
+]
+
+[default.extend-words]
+# relm4, a GTK framework
+relm = "relm"
