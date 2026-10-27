@@ -1,0 +1,16 @@
+# The MSRV for version-gated lints is read from rust-version in Cargo.toml.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-print-in-tests = true
+# Proper names, not code; ".." keeps clippy's defaults
+doc-valid-idents = [
+  "OpenRGB",
+  "ProMedia",
+  "IOKit",
+  "FreeBSD",
+  "PipeWire",
+  "LampArray",
+  "LampArrayControl",
+  "WinUSB",
+  "..",
+]

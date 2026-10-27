@@ -1,0 +1,28 @@
+[package]
+name = "lumina-cli"
+description = "Command line control for Klipsch ProMedia Lumina speakers"
+readme = "../../README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[[bin]]
+name = "lumina"
+path = "src/main.rs"
+
+[dependencies]
+lumina = { workspace = true, features = ["serde"] }
+clap.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+lumina = { workspace = true, features = ["serde", "sim"] }
+
+[lints]
+workspace = true

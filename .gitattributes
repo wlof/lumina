@@ -1,0 +1,15 @@
+# Normalise line endings and check out LF everywhere, including on Windows:
+# rustfmt.toml sets newline_style = "Unix", so CRLF checkouts would fail
+# `cargo fmt --check`.
+* text=auto eol=lf
+
+# Language-aware diff hunk headers
+*.rs diff=rust
+*.md diff=markdown
+
+# Generated files: collapsed in GitHub diffs and left out of language stats
+Cargo.lock linguist-generated=true
+**/proptest-regressions/*.txt linguist-generated=true
+
+# Captured device state, read with include_str!
+*.hex text eol=lf linguist-vendored=true
