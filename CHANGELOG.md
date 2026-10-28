@@ -6,6 +6,22 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/wlof/lumina/compare/v0.1.1...v0.1.2) - 2026-10-28
+
+### Fixed
+
+- eq set reports when the speakers store different bands
+- show HID errors once in error messages
+
+### Other
+
+- attest release archives
+- Windows tested with real speakers
+- rewrite README for users, trim RELEASING, refresh docs
+- release pipeline with release-plz and dist; publish as klipsch-lumina
+- CI badge, platform status from CI, build and library sections
+- Initial commit: lumina library and CLI for Klipsch ProMedia Lumina speakers
+
 ## [0.1.1](https://github.com/wlof/lumina/compare/v0.1.0...v0.1.1) - 2026-10-28
 
 ### Fixed
