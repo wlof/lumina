@@ -1,5 +1,5 @@
 [package]
-name = "lumina-cli"
+name = "klipsch-lumina-cli"
 description = "Command line control for Klipsch ProMedia Lumina speakers"
 readme = "../../README.md"
 version.workspace = true
@@ -14,17 +14,19 @@ categories.workspace = true
 [[bin]]
 name = "lumina"
 path = "src/main.rs"
-# Same name as the library crate, whose docs it would overwrite
-doc = false
 
 [dependencies]
-lumina = { workspace = true, features = ["serde"] }
+klipsch-lumina = { workspace = true, features = ["serde"] }
 clap.workspace = true
 anyhow.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-lumina = { workspace = true, features = ["serde", "sim"] }
+klipsch-lumina = { workspace = true, features = ["serde", "sim"] }
 
 [lints]
 workspace = true
+
+[package.metadata.dist]
+# Linux users need the udev rule to access the speakers
+include = ["../../udev/60-klipsch-lumina.rules"]

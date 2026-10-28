@@ -1,0 +1,57 @@
+# Release PRs and crates.io publishing; see release-plz.toml and RELEASING.md.
+name: Release-plz
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  # Publishes to crates.io and pushes the vX.Y.Z tag after a release PR is
+  # merged; does nothing for other commits.
+  release:
+    name: Release
+    if: github.repository_owner == 'wlof'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      # crates.io trusted publishing
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - uses: release-plz/action@8921286633dfa0c4020f7f30bd1c14fe19cbb10e # v0.5.142
+        with:
+          command: release
+        env:
+          # Not GITHUB_TOKEN: tags it pushes would not start release.yml
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+  # Opens or updates the release PR with version bumps and the changelog.
+  release-pr:
+    name: Release PR
+    if: github.repository_owner == 'wlof'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - uses: release-plz/action@8921286633dfa0c4020f7f30bd1c14fe19cbb10e # v0.5.142
+        with:
+          command: release-pr
+        env:
+          # Not GITHUB_TOKEN: PRs it opens would not run CI
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}

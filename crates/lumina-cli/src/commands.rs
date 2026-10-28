@@ -4,7 +4,7 @@
 use std::fmt::{Debug, Write as _};
 
 use anyhow::{Context, Result, bail};
-use lumina::{BtPairing, InputSource, LightMode, Lumina, Transport, eq, light};
+use klipsch_lumina::{BtPairing, InputSource, LightMode, Lumina, Transport, eq, light};
 
 use crate::cli::{Cmd, DebugCmd, EqCmd, LightCmd, MuteArg, OnOff, PowerCmd};
 use crate::render;
@@ -144,7 +144,7 @@ fn set_input<T: Transport>(
     if let Some(i) = input {
         let before = l.state()?.input;
         match l.set_input(i) {
-            Ok(()) | Err(lumina::Error::Reconnecting) => {}
+            Ok(()) | Err(klipsch_lumina::Error::Reconnecting) => {}
             Err(e) => return Err(e.into()),
         }
         // Switching to USB from another input re-enumerates the device
@@ -286,7 +286,7 @@ fn check<T: Copy + PartialEq + Debug>(want: Option<T>, got: Option<T>, what: &st
 #[cfg(test)]
 mod tests {
     use clap::Parser;
-    use lumina::sim::Simulator;
+    use klipsch_lumina::sim::Simulator;
 
     use super::*;
     use crate::cli::Cli;

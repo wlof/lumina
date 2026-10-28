@@ -29,7 +29,7 @@ Most tests need no hardware:
 
 - unit and property tests in each module (proptest for the encoders and for
   parsing arbitrary device input);
-- CLI tests that run commands against `lumina::sim::Simulator`, a simulated
+- CLI tests that run commands against `klipsch_lumina::sim::Simulator`, a simulated
   device built from a real state report (`crates/lumina/tests/data`).
 
 With speakers connected and nothing else holding them (OpenRGB, a VM),
@@ -48,6 +48,12 @@ that true. `docs/protocol.md` tags every fact with how it is known.
 - Values coming from the device are untrusted: parsing must never panic.
 - Raising `rust-version` is a deliberate change: note why next to it.
 
-## Changelog
+## Commits and changelog
 
-Add user-visible changes to the `Unreleased` section of `CHANGELOG.md`.
+`CHANGELOG.md` is generated from commit messages when a release is
+prepared (see [RELEASING.md](RELEASING.md)), so write them for users and use
+[Conventional Commits](https://www.conventionalcommits.org/) prefixes:
+`feat:` and `fix:` become Added and Fixed entries, `feat!:` or a
+`BREAKING CHANGE:` footer marks a breaking change. Other prefixes (`docs:`,
+`ci:`, `refactor:`, ...) and unprefixed messages are listed under Other.
+Don't edit `CHANGELOG.md` by hand; polish it in the release PR instead.

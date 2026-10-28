@@ -1,5 +1,5 @@
 [package]
-name = "lumina"
+name = "klipsch-lumina"
 description = "Control library for Klipsch ProMedia Lumina speakers"
 readme = "README.md"
 version.workspace = true

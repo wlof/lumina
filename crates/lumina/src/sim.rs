@@ -7,12 +7,12 @@
 //! and fails on malformed ones, so it also tests the encoder.
 //!
 //! ```
-//! use lumina::{Lumina, SoundMode, sim::Simulator};
+//! use klipsch_lumina::{Lumina, SoundMode, sim::Simulator};
 //!
 //! let mut speakers = Lumina::with_transport(Simulator::new());
 //! speakers.set_sound_mode(SoundMode::Movie)?;
 //! assert_eq!(speakers.state()?.sound_mode, Some(SoundMode::Movie));
-//! # Ok::<(), lumina::Error>(())
+//! # Ok::<(), klipsch_lumina::Error>(())
 //! ```
 
 use crate::frame::{HEADER, REPORT_LEN, Report};

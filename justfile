@@ -31,7 +31,7 @@ test:
 
 # Round trip every reversible setting on connected speakers
 test-hardware:
-    cargo test -p lumina --test hardware -- --ignored --test-threads 1
+    cargo test -p klipsch-lumina --test hardware -- --ignored --test-threads 1
 
 # API docs, failing on any warning
 doc:

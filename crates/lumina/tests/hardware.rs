@@ -4,8 +4,8 @@
 //! `cargo test -p lumina --test hardware -- --ignored --test-threads 1`
 //! Input, Bluetooth pairing, standby and factory reset are left out.
 
-use lumina::eq::Preset;
-use lumina::{FirmwarePreset, Lumina, SoundMode};
+use klipsch_lumina::eq::Preset;
+use klipsch_lumina::{FirmwarePreset, Lumina, SoundMode};
 
 #[test]
 #[ignore = "needs hardware"]

@@ -15,7 +15,7 @@ keywords = ["klipsch", "speakers", "usb", "hid", "audio"]
 categories = ["hardware-support", "command-line-utilities"]
 
 [workspace.dependencies]
-lumina = { path = "crates/lumina", version = "0.1.0" }
+klipsch-lumina = { path = "crates/lumina", version = "0.1.0" }
 # linux-static-libusb: interface 4 has no hidraw node on Linux. Other platforms
 # use their native back end (libusb via the system hidapi on FreeBSD).
 hidapi = { version = "2.6.7", default-features = false, features = ["linux-static-libusb"] }
@@ -52,3 +52,8 @@ allow_attributes_without_reason = "warn"
 lto = "thin"
 codegen-units = 1
 strip = "symbols"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
