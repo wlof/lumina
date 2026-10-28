@@ -6,6 +6,15 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0](https://github.com/wlof/lumina/releases/tag/v0.1.0) - 2026-10-28
+
+### Other
+
+- release pipeline with release-plz and dist; publish as klipsch-lumina
+- CI badge, platform status from CI, build and library sections
+- Don't document the CLI binary, which shares the library's doc path
+- Initial commit: lumina library and CLI for Klipsch ProMedia Lumina speakers
+
 ### Added
 
 - `lumina` command line tool: status, EQ presets and bands, firmware EQ
