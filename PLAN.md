@@ -1,8 +1,9 @@
 # Plan
 
-Goal: control the Klipsch ProMedia Lumina audio settings from Linux, without
-reproducing the Windows app 1:1. CLI first, GUI later. Lighting stays in
-OpenRGB.
+Goal: control the Klipsch ProMedia Lumina's settings, audio and lighting,
+from Linux and other platforms, without reproducing the Windows app 1:1.
+CLI first, GUI later. OpenRGB also drives the lighting, for syncing it
+with other RGB devices.
 
 ## Feature scope
 
@@ -12,7 +13,7 @@ Klipsch Control 1.11.0 exposes these through the vendor protocol:
 |---------|---------|----------|
 | EQ presets (Flat, Vocal, Bass, Treble, Rock, Hip Hop) | 0x0A with the app's band tables | yes |
 | Custom parametric EQ, 6 bands | 0x0A | yes |
-| Firmware EQ preset | 0x09 | read only, maybe; the app never sets it |
+| Firmware EQ preset | 0x09 | yes; the app never sets it, but it is audible |
 | Sound mode (Movie, Music, Virtual Surround) | 0x08 | yes |
 | Subwoofer level, −20…+10 dB | 0x04 | yes |
 | Night mode | 0x0D | yes |
@@ -25,7 +26,7 @@ Klipsch Control 1.11.0 exposes these through the vendor protocol:
 | Power state | 0x16 | yes |
 | Factory reset | 0x19 | yes, behind `--yes` |
 | Device info (serial, firmware, BT MAC) | state report | yes |
-| Lighting modes, colours, per-LED | 0x0B, 0x11, 0x1A | yes (added after phase 3; OpenRGB also drives them) |
+| Lighting modes, colours, per-LED | 0x0B, 0x11, 0x1A | yes (added after phase 3) |
 | Screen React (screen sampling) | 0x11 stream | later, needs a long-running process |
 
 Master volume stays out of scope: Klipsch Control itself sets the OS volume
@@ -49,9 +50,9 @@ on interface 4. Only interface 4 is opened, so audio playback
 | Platform | hidapi back end | Shared with OpenRGB / Klipsch Control | Status |
 |----------|-----------------|---------------------------------------|--------|
 | Linux | libusb, bundled hidapi (no hidraw node for interface 4) | no, exclusive claim | works |
-| FreeBSD | libusb, system `hidapi` package | no, exclusive claim | to test in the FreeBSD VM |
-| Windows | hid.dll | yes | to test in the Win10 VM |
-| macOS | IOKit, opened non-exclusive | only if the other side is non-exclusive too | untested, no hardware; unknown whether IOKit exposes the endpoint-less interface |
+| FreeBSD | libusb, system `hidapi` package | no, exclusive claim | builds and passes CI; hardware test pending (FreeBSD VM) |
+| Windows | hid.dll | yes | builds and passes CI; hardware test pending (Win10 VM) |
+| macOS | IOKit, opened non-exclusive | only if the other side is non-exclusive too | builds and passes CI; no hardware to test, unknown whether IOKit exposes the endpoint-less interface |
 
 `nusb` was tried first and dropped: it needs WinUSB on Windows, cannot
 reach interfaces owned by the macOS HID driver, and has no FreeBSD support.
@@ -142,15 +143,20 @@ simulator for CLI tests, cargo-deny, GitHub Actions CI on Linux, macOS,
 Windows and FreeBSD with SHA-pinned actions, Dependabot, `just ci` locally.
 See CONTRIBUTING.md.
 
+### Release pipeline (done)
+
+Published on crates.io as `klipsch-lumina` and `klipsch-lumina-cli`.
+release-plz opens release PRs and publishes with crates.io trusted
+publishing; dist builds binaries and installers for Linux, macOS and
+Windows on every tag. The udev rule ships in the Linux archives. See
+RELEASING.md.
+
 ### 4. Portability and packaging
 
-- Build and test on Windows and FreeBSD in the VMs; CI builds for Linux,
-  Windows and macOS
-
-- `udev/60-klipsch-lumina.rules` (uaccess), documented in the README
-- shell completions and man page via `clap_complete` / `clap_mangen`
-- PKGBUILD
-- CI: fmt, clippy, test
+- Test the Windows and FreeBSD builds with the speakers in the VMs
+- Shell completions and man page via `clap_complete` / `clap_mangen`,
+  included in the release archives
+- PKGBUILD (AUR), possibly other distribution packages
 
 ### 5. GUI (later)
 

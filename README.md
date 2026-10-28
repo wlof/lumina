@@ -1,185 +1,232 @@
 # lumina
 
 [![CI](https://github.com/wlof/lumina/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wlof/lumina/actions/workflows/ci.yml?query=branch%3Amain)
+[![crates.io](https://img.shields.io/crates/v/klipsch-lumina-cli.svg)](https://crates.io/crates/klipsch-lumina-cli)
+[![docs.rs](https://docs.rs/klipsch-lumina/badge.svg)](https://docs.rs/klipsch-lumina)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Command-line control for Klipsch ProMedia Lumina 2.1 speakers on Linux and
-other platforms: EQ presets and parametric bands, sound mode, subwoofer level, night mode,
-input, lighting effects and per-LED colours, and the other settings of
-Klipsch's Windows app, Klipsch Control. For lighting synced with other RGB
-devices, [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB) also
-supports the speakers.
+Control your **Klipsch ProMedia Lumina 2.1** speakers from the command line:
+EQ, sound mode, subwoofer level, night mode, input, lighting and the other
+settings of Klipsch's Windows-only app, Klipsch Control. Works on Linux, and
+builds for macOS, Windows and FreeBSD.
 
-The USB protocol was worked out from the speakers and from Klipsch Control
-1.11.0; see [docs/protocol.md](docs/protocol.md). Plans and open questions
-are in [PLAN.md](PLAN.md).
+```console
+$ lumina eq preset bass
+EQ: bass (firmware preset flat)
+$ lumina sub -3
+Subwoofer: -3 dB
+$ lumina light static orange
+Light: static #ff7f00
+$ lumina status
+ProMedia Lumina  (serial 123456789012345, firmware 1.0.3)
+Input:          usb
+Sound mode:     music
+EQ:             bass (firmware preset flat)
+  band 1:          50 Hz  Q 3.500 +3.0 dB
+  band 2:         150 Hz  Q 4.000 +2.0 dB
+  band 3:         400 Hz  Q 4.000 +1.0 dB
+  band 4:        1000 Hz  Q 3.000 +0.0 dB
+  band 5:        3500 Hz  Q 3.500 +0.0 dB
+  band 6:        8000 Hz  Q 4.000 +0.0 dB
+Subwoofer:      -3 dB
+Night mode:     off
+Mute:           off
+UI tones:       on
+Auto standby:   on (after 15 min)
+Bluetooth:      off (02:00:00:00:00:01)
+Light:          static #ff7f00
+```
 
-## Status
+## Install
 
-The CLI covers every audio, lighting and system setting the speakers
-expose over USB. Every command except `power standby` and `factory-reset`
-has been run against real speakers (firmware 1.0.3) and checked by reading
-the state back. Sound mode, EQ, subwoofer level, night mode, mute and input
-were also checked by listening, and every lighting effect by eye.
+### Prebuilt binaries
 
-CI builds and tests every platform below against a simulated device; only
-Linux has been tried with real speakers.
+Linux and macOS:
 
-| Platform | State |
-|----------|-------|
-| Linux | Works, tested on hardware |
-| FreeBSD | Builds and passes CI; should work (same hidapi/libusb path as the OpenRGB driver) |
-| Windows | Builds and passes CI; should work (hid.dll, like Klipsch Control) |
-| macOS | Builds and passes CI; unknown whether macOS exposes the speakers' control interface |
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/wlof/lumina/releases/latest/download/klipsch-lumina-cli-installer.sh | sh
+```
 
-## Compared with Klipsch Control
+Windows (PowerShell):
 
-✅ implemented · ➖ left to another tool · ❌ not implemented
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/wlof/lumina/releases/latest/download/klipsch-lumina-cli-installer.ps1 | iex"
+```
 
-### Audio
+The installers put `lumina` in `~/.cargo/bin`. You can also download the
+archive for your platform from the
+[latest release](https://github.com/wlof/lumina/releases/latest) and put
+`lumina` anywhere on your `PATH`. The Linux binaries need libusb 1.0, which
+most distributions install by default.
 
-| Klipsch Control | lumina | Notes |
-|-----------------|--------|-------|
-| EQ presets: Flat, Vocal Boost, Bass Boost, Treble Boost, Rock, Hip Hop | ✅ `eq preset` | Same band tables as the app |
-| Custom EQ (six bands) | ✅ `eq set`, `eq bands`, `eq reset` | Per band frequency, Q and gain (±6 dB like the app) |
-| Manual PEQ from a JSON file (developer mode) | ❌ | `eq set` covers the same ground one band at a time |
-| — | ✅ `eq firmware` | Firmware presets (Flat, Vocal, Bass, Rock, Treble); the app never uses them, but they are audible and combine with the bands |
-| Sound mode: Movie, Music, Virtual Surround | ✅ `sound-mode` | |
-| Subwoofer level, −20 to +10 dB | ✅ `sub` | |
-| Night mode | ✅ `night-mode` | |
-| Mute | ✅ `mute` | Plus `toggle` |
-| Master volume | ➖ system mixer | The app sets the Windows volume too, not the speakers |
-| Input source (Bluetooth, Aux, USB) | ✅ `input` | Also USB Disc; waits for the speakers to reconnect after switching back to USB |
-| Bluetooth pairing | ✅ `bt-pair` | Needs the Bluetooth input |
-| Play/pause, next, previous | ❌ | Commands known (0x05–0x07); on the PC side MPRIS does this |
+### With Cargo
+
+```sh
+cargo install --locked klipsch-lumina-cli
+```
+
+This builds from source: it needs Rust 1.88 or later and a C compiler, and on
+Linux also pkg-config and the libusb headers (`libusb-1.0-0-dev` on Debian
+and Ubuntu, `libusb1-devel` on Fedora, `libusb` on Arch). On FreeBSD, install
+the `hidapi` and `pkgconf` packages first.
+
+### Linux: allow access to the speakers
+
+Without this, `lumina` only works as root. The udev rule gives the user
+logged in at the computer access to the speakers:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/wlof/lumina/main/udev/60-klipsch-lumina.rules \
+  | sudo tee /etc/udev/rules.d/60-klipsch-lumina.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```
+
+The rule is also in the release archives and in `udev/` in this repository.
+
+### Platform support
+
+| Platform | Status |
+|----------|--------|
+| Linux | Tested with real speakers |
+| Windows | Builds and passes the tests; not yet tried with real speakers |
+| macOS | Builds and passes the tests; not yet tried with real speakers, and macOS may not let programs reach the speakers' control interface |
+| FreeBSD | Builds and passes the tests; not yet tried with real speakers; build it with Cargo |
+
+If you try `lumina` on Windows, macOS or FreeBSD, please
+[open an issue](https://github.com/wlof/lumina/issues) with the result.
+
+## Usage
+
+`lumina status` shows every setting at once (`--json` for scripts). Run a
+setting's command without a value to see its current value, for example
+`lumina sub`. Every change is read back from the speakers and reported if it
+did not take, and out-of-range values are refused before anything is sent.
+`lumina help <command>` lists all the options.
+
+The tables below follow Klipsch Control's settings, so you can find each
+one; extras that the app doesn't have are marked *(lumina only)*.
+
+### Sound
+
+| Setting | Command | Notes |
+|---------|---------|-------|
+| EQ preset | `lumina eq preset bass` | `flat`, `vocal`, `bass`, `treble`, `rock`, `hip-hop`; the same curves as the app |
+| Custom EQ: six bands | `lumina eq set 4 --gain -2 --q 1.4` | Per band: `--freq` 20–20000 Hz, `--gain` −6 to +6 dB, `--q` 0.1–20 |
+| Show the bands | `lumina eq bands` | `--json` for scripts |
+| Reset the bands | `lumina eq reset` | The speakers' flat defaults |
+| Firmware EQ preset *(lumina only)* | `lumina eq firmware rock` | `flat`, `vocal`, `bass`, `rock`, `treble`; built into the speakers and applied on top of the bands; the app never changes it |
+| Sound mode | `lumina sound-mode surround` | `movie`, `music`, `surround` (Virtual Surround) |
+| Subwoofer level | `lumina sub -3` | −20 to +10 dB |
+| Night mode | `lumina night-mode on` | Turns the bass down by half |
+| Mute | `lumina mute toggle` | `on`, `off`, `toggle` |
+| Input | `lumina input aux` | `bt`, `aux`, `usb`, `usb-disc`; after switching to USB the speakers reconnect, which takes about 20 seconds |
+| Bluetooth pairing | `lumina bt-pair on` | Only on the Bluetooth input |
+| Volume | Not supported | Use your system's volume control; the app does the same |
+| Play/pause, next, previous | Not supported | Use your desktop's media keys |
+| EQ from a JSON file (app developer mode) | Not supported | Use `eq set` for each band |
 
 ### Speaker settings
 
-| Klipsch Control | lumina | Notes |
-|-----------------|--------|-------|
-| Function Sound (UI tones) | ✅ `tones` | |
-| Auto standby on/off | ✅ `auto-standby` | |
-| Auto standby delay: 2, 5, 10, 15 min | ✅ `auto-standby --after` | Any 1 to 60 min |
-| Wake on connect | ❌ | Not needed while the speakers are on; nothing sent over USB wakes them from standby |
-| — | ✅ `power standby --yes` | Only the power button wakes the speakers afterwards |
-| Factory reset | ✅ `factory-reset --yes` | Not tried on hardware |
-| Product information (serial, firmware version) | ✅ `status` | Also Bluetooth MAC and name |
-| — | ✅ `status --json`, `eq bands --json` | For scripts |
+| Setting | Command | Notes |
+|---------|---------|-------|
+| Button tones ("Function Sound") | `lumina tones off` | |
+| Auto standby | `lumina auto-standby on --after 10` | Standby after this many minutes without a signal, 1 to 60 (the app offers 2, 5, 10, 15) |
+| Standby now *(lumina only)* | `lumina power standby --yes` | Only the speakers' power button wakes them again |
+| Factory reset | `lumina factory-reset --yes` | Also forgets Bluetooth pairings; not yet tried on real speakers |
+| Product information | `lumina status` | Serial number, firmware version, Bluetooth address |
+| Wake on connect | Not supported | Nothing sent over USB wakes the speakers from standby |
 
 ### Lighting
 
-| Klipsch Control | lumina | Notes |
-|-----------------|--------|-------|
-| Static and Breathe with a custom colour | ✅ `light static`, `light breathe` | Any colour, `#rrggbb` or a name |
-| Aurora, cool or warm | ✅ `light aurora` | |
-| Music React with its colour presets | ✅ `light music-react` | Default (cycling) and the four pairs; the firmware ignores other colours |
-| Rainbow, Off | ✅ `light rainbow`, `light off` | |
-| Screen React (screen colours on the LEDs, with performance and smoothing settings) | ❌ | The per-LED mode it uses is there (`light leds`); sampling the screen is not |
-| — | ✅ `light leds` | Static per-LED colours: 1, 2, 4 or 12 colours; they stay after `lumina` exits |
-| Windows Dynamic Lighting | ➖ | Windows only |
-| LED brightness | ❌ | The command exists but has no visible effect, in the app too |
+Colours are a name (`black`, `white`, `red`, `green`, `blue`, `cyan`,
+`magenta`, `purple`, `yellow`, `orange`, `pink`) or a hex code (`#ff7f00`
+or `ff7f00`).
 
-### Firmware and app
+| Setting | Command | Notes |
+|---------|---------|-------|
+| Current mode | `lumina light` | |
+| Static colour | `lumina light static orange` | |
+| Breathe | `lumina light breathe blue` | Fades one colour in and out |
+| Aurora | `lumina light aurora warm` | `cool` (blue and cyan) or `warm` (red and orange) |
+| Music React | `lumina light music-react red-pink` | `default` (cycling colours), `blue-purple`, `cyan-blue`, `red-pink`, `yellow-orange` |
+| Rainbow | `lumina light rainbow` | |
+| Off | `lumina light off` | |
+| Per-LED colours *(lumina only)* | `lumina light leds red blue` | See below |
+| Screen React | Not supported | `light leds` shows fixed colours; following the screen is not implemented |
+| LED brightness | Not supported | The speakers ignore it, in the app too |
+| Windows Dynamic Lighting | Not supported | Windows only |
 
-| Klipsch Control | lumina | Notes |
-|-----------------|--------|-------|
-| Firmware version | ✅ `status` | |
-| Online firmware update check, scheduled auto-update | ❌ | Uses Klipsch's web API with the app's key; not used here |
-| Firmware update from a `.bin` file | ❌ | Separate update path (CDC/DFU), not investigated; Klipsch also documents a USB update method |
-| Product registration (anonymous on connect, or with an e-mail) | ❌ | Not wanted |
-| Crash and usage telemetry (Sentry) | ❌ | Not wanted |
-| App self-update | ➖ package manager | |
-| Start with Windows, close to tray, always on top | ❌ | Desktop integration; for a later GUI or tray applet |
-| Encrypted log files and log viewer | ❌ | `lumina` keeps no logs; `debug dump` shows the raw state |
+`light leds` takes 1, 2, 4 or 12 colours: one for all LEDs; left and right
+speaker; left top, left bottom, right top, right bottom; or all twelve LEDs,
+for each speaker (left first, as seen from the front) the top row then the
+bottom row, left to right. The colours stay after `lumina` exits.
 
-## Build
+### App features
 
-Needs Rust 1.88 or later and a C compiler. With rustup,
-`rust-toolchain.toml` selects the toolchain CI uses. On Linux also
-pkg-config and the libusb headers (`libusb-1.0` / `libusb-1.0-0-dev`); on
-FreeBSD pkg-config and the `hidapi` package. Windows and macOS need nothing
-else.
+| Feature | Command | Notes |
+|---------|---------|-------|
+| Firmware version | `lumina status` | |
+| Firmware updates | Not supported | Use Klipsch Control or Klipsch's USB update instructions |
+| Product registration, telemetry | Not supported | `lumina` sends nothing anywhere |
+| Start with Windows, tray icon | Not supported | |
 
-```
+## Troubleshooting
+
+- **"no Klipsch ProMedia Lumina found"**: check that the speakers are on and
+  connected to the computer with the USB cable.
+- **"cannot open the speakers' control interface"**: on Linux, install the
+  udev rule above. On Linux and FreeBSD only one program can control the
+  speakers at a time, so close OpenRGB (if it has the Lumina driver) and
+  detach the speakers from any virtual machine.
+- **"speakers did not respond"**: the speakers are in standby, where they
+  stop answering over USB. Press their power button. `lumina` gives up after
+  `--timeout` seconds (default 20).
+- **Lighting changes back on its own**: OpenRGB applies its own lighting
+  when it starts.
+- **Two sets of speakers**: `--serial` selects one by its USB serial number,
+  but the tested speakers report a fixed-looking serial (`20190808`), so two
+  sets may not be told apart. Untested.
+- After any custom EQ change, the speakers keep a "custom EQ" flag that only
+  a factory reset might clear. Klipsch Control sets it too; it has no known
+  effect.
+
+## Technical details
+
+### Library
+
+The CLI is built on the [`klipsch-lumina`](https://docs.rs/klipsch-lumina)
+library ([crates/lumina](crates/lumina)), which other programs can use:
+`Lumina::open` finds the speakers, typed setters change settings and
+`state()` reads them all back. Its `sim` feature provides a simulated device
+that behaves like the real speakers, for development and tests without
+hardware.
+
+### Protocol
+
+The USB protocol was worked out from the speakers and from Klipsch Control
+1.11.0; see [docs/protocol.md](docs/protocol.md). Every command except
+`power standby` and `factory-reset` has been checked on real speakers
+(firmware 1.0.3) by reading the state back; sound settings were also
+checked by listening and lighting by eye. Plans and open questions are in
+[PLAN.md](PLAN.md).
+
+### Building from source
+
+Needs Rust 1.88 or later and a C compiler; on Linux also pkg-config and the
+libusb headers, on FreeBSD the `hidapi` package. With rustup,
+`rust-toolchain.toml` selects the toolchain CI uses.
+
+```sh
 cargo build --release                            # target/release/lumina
 cargo install --locked --path crates/lumina-cli  # or into ~/.cargo/bin
 ```
 
-## Permissions (Linux)
-
-Install the udev rule so the logged-in user can access the device:
-
-```
-sudo install -m 644 udev/60-klipsch-lumina.rules /etc/udev/rules.d/
-sudo udevadm control --reload && sudo udevadm trigger
-```
-
-## Usage
-
-```
-lumina status                     # everything at a glance, --json for scripts
-lumina eq preset bass             # flat, vocal, bass, treble, rock, hip-hop
-lumina eq set 4 --gain -2 --q 1.4 # change one of the six bands
-lumina eq reset                   # back to the device's flat defaults
-lumina eq firmware rock           # the firmware's own preset, on top of the bands
-lumina sound-mode surround        # movie, music, surround
-lumina sub -3                     # subwoofer level, -20 to +10 dB
-lumina night-mode on
-lumina mute toggle
-lumina input aux                  # bt, aux, usb, usb-disc
-lumina bt-pair on                 # needs the Bluetooth input
-lumina tones off
-lumina auto-standby on --after 10
-lumina power standby --yes        # only the power button wakes them
-
-lumina light                      # current light mode
-lumina light static orange        # also #ff7f00 or ff7f00
-lumina light breathe blue
-lumina light aurora warm          # cool, warm
-lumina light music-react red-pink # default, blue-purple, cyan-blue, red-pink, yellow-orange
-lumina light rainbow
-lumina light off
-lumina light leds red blue        # left satellite red, right blue
-lumina light leds red green blue white  # left top, left bottom, right top, right bottom
-```
-
-`light leds` also takes 12 colours: per satellite (left first, as seen
-facing the speakers), the top row then the bottom row, each left to right.
-
-Setting commands without a value print the current one. Every change is
-read back from the speakers and reported if it did not take. Values out
-of range are refused before anything is sent.
-
-## Known limitations
-
-- On Linux and FreeBSD only one program can use the speakers' control
-  interface at a time. `lumina` cannot reach them while OpenRGB (with the
-  Lumina driver loaded) or a virtual machine holds them. Starting OpenRGB
-  also applies its own lighting over `lumina`'s.
-- In standby the speakers stop answering on USB. `lumina` gives up after
-  `--timeout` seconds (default 20) and suggests pressing the power button.
-- Writing any custom EQ band sets a flag in the speakers ("PeqMode") that
-  nothing known clears except possibly a factory reset. Klipsch Control
-  sets it too, so this is the state after using the app.
-- Switching the input back to USB makes the speakers reconnect; the audio
-  output disappears for about 20 seconds.
-- `--serial` picks speakers by USB serial number, but the tested set reports
-  `20190808`, which looks like a fixed value. With two sets connected it
-  probably cannot tell them apart; untested.
-
-## Library
-
-The CLI is built on the `klipsch-lumina` library
-([crates/lumina](crates/lumina)), which other front ends can use directly:
-`Lumina::open` finds the speakers, typed setters change settings and
-`state()` reads them all back. Its `sim` feature provides a simulated device
-that behaves like the real speakers, for developing and testing without
-hardware. `cargo doc --open -p klipsch-lumina` shows the API.
-
-## Development
+### Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: `just ci` runs every check
-CI runs; most tests use a simulated device, and `just test-hardware` runs a
-round trip on connected speakers.
+CI runs, most tests use the simulated device, and `just test-hardware` runs a
+round trip on connected speakers. Releases are automated; see
+[RELEASING.md](RELEASING.md).
 
 ## License
 

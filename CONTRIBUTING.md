@@ -5,7 +5,8 @@
 - Rust via [rustup](https://rustup.rs). `rust-toolchain.toml` pins the
   toolchain; rustup installs it on first use.
 - A C compiler and pkg-config. On Linux the libusb headers
-  (`libusb-1.0-0-dev` / `libusb1-devel`), on FreeBSD the `hidapi` package.
+  (`libusb-1.0-0-dev` on Debian and Ubuntu, `libusb1-devel` on Fedora,
+  `libusb` on Arch), on FreeBSD the `hidapi` package.
 - The checks use a few cargo tools:
 
   ```
@@ -29,8 +30,9 @@ Most tests need no hardware:
 
 - unit and property tests in each module (proptest for the encoders and for
   parsing arbitrary device input);
-- CLI tests that run commands against `klipsch_lumina::sim::Simulator`, a simulated
-  device built from a real state report (`crates/lumina/tests/data`).
+- CLI tests that run commands against `klipsch_lumina::sim::Simulator`, a
+  simulated device built from a real state report
+  (`crates/lumina/tests/data`).
 
 With speakers connected and nothing else holding them (OpenRGB, a VM),
 `just test-hardware` changes every reversible setting, checks it and

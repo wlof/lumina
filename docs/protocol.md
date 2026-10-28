@@ -216,8 +216,9 @@ All verified on the hardware with `lumina light` and checked by eye.
 
 ## Timing quirks [hw]
 
-- Two frames closer than ~5 ms can drop the lighting to white. The OpenRGB
-  driver spaces color frames 50 ms apart. The app waits 100 ms after a
+- Two frames closer than ~5 ms can drop the lighting to white. `lumina`
+  spaces all frames at least 50 ms apart, as the OpenRGB driver does for
+  colour frames. The app waits 100 ms after a
   subwoofer level write [app]. Back-to-back audio commands are untested.
 - A light mode change zeroes the stored custom RGB pair.
 - Switching InputSource from Aux to USB PC (2) makes the device drop off

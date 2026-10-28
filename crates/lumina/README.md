@@ -1,4 +1,4 @@
-# lumina
+# klipsch-lumina
 
 Rust library for controlling Klipsch ProMedia Lumina 2.1 speakers over USB:
 EQ, sound mode, subwoofer level, night mode, input, lighting and the other
