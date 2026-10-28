@@ -17,7 +17,8 @@ Both crates, `klipsch-lumina` (the library) and `klipsch-lumina-cli` (the
    (`.github/workflows/release.yml`), which builds `lumina` for Linux
    (x86_64, aarch64), macOS (Apple Silicon, Intel) and Windows (x86_64), and
    creates the GitHub Release with the archives, checksums and shell and
-   PowerShell installers.
+   PowerShell installers. Each archive gets a build provenance attestation
+   (`github-attestations` in `dist-workspace.toml`).
 
 Configuration: `release-plz.toml` and `dist-workspace.toml`. After changing
 `dist-workspace.toml`, run `dist generate` to rewrite `release.yml`; never

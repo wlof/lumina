@@ -57,7 +57,8 @@ The installers put `lumina` in `~/.cargo/bin`. You can also download the
 archive for your platform from the
 [latest release](https://github.com/wlof/lumina/releases/latest) and put
 `lumina` anywhere on your `PATH`. The Linux binaries need libusb 1.0, which
-most distributions install by default.
+most distributions install by default. Archives from releases after 0.1.1
+can be checked with `gh attestation verify <archive> --repo wlof/lumina`.
 
 ### With Cargo
 
