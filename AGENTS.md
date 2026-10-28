@@ -1,0 +1,109 @@
+# AGENTS.md
+
+Guidance for coding agents working in this repository. People should start
+with [README.md](README.md) and [CONTRIBUTING.md](CONTRIBUTING.md); this
+file adds what an agent needs on top.
+
+## Project
+
+`lumina` controls Klipsch ProMedia Lumina 2.1 speakers (USB `18b5:0070`)
+from the command line: EQ, sound mode, subwoofer, night mode, input,
+lighting and the other settings of Klipsch's Windows app.
+
+| Path | What |
+|------|------|
+| `crates/lumina` | Library, package `klipsch-lumina`, imported as `klipsch_lumina` |
+| `crates/lumina-cli` | CLI, package `klipsch-lumina-cli`, binary `lumina` |
+| `crates/lumina/src/sim.rs` | Simulated speakers (`sim` feature), used by the CLI tests |
+| `crates/lumina/tests/data/` | State report captured from real speakers |
+| `docs/protocol.md` | The USB protocol and how each fact is known |
+| `PLAN.md` | Phases, open questions and what is left to do |
+| `RELEASING.md` | The release pipeline (release-plz, dist) |
+
+The library talks to vendor HID interface 4 through `hidapi`: 256-byte
+frames sent as SET_REPORT and a 123-byte state report read back with
+GET_REPORT. `frame.rs` encodes, `state.rs` decodes, `device.rs` holds the
+`Lumina` handle and its setters, `transport.rs` is the only code that
+touches the hardware.
+
+## Commands
+
+```sh
+just ci             # everything CI checks: fmt, clippy (all feature sets), tests,
+                    # docs, cargo-deny, unused deps, typos, MSRV build
+just fmt            # format Rust and TOML
+just test           # tests only; no hardware needed
+cargo run -q -p klipsch-lumina-cli -- status   # needs the speakers
+```
+
+Run `just ci` before declaring a change done; CI fails on any warning.
+The toolchain is pinned in `rust-toolchain.toml`; the MSRV is
+`rust-version` in `Cargo.toml` (1.88), checked in CI. Required cargo tools
+are listed in CONTRIBUTING.md.
+
+## Code conventions
+
+- No `unsafe`; it is forbidden workspace-wide.
+- Clippy pedantic and the workspace lints in `Cargo.toml` apply. Silence a
+  lint locally with `#[expect(lint, reason = "...")]`, never with a global
+  `allow`. No `unwrap`/`expect` outside tests.
+- Every public item has doc comments; `cargo doc` runs with `-D warnings`.
+- Data from the device is untrusted: parsing must never panic. Property
+  tests (proptest) check this; keep them passing and add to them.
+- Library setters validate values before sending anything; the CLI reads
+  the state back after every change and reports a mismatch.
+- Match the surrounding style: short doc comments, British spelling in
+  prose ("colour", "initialise"), American in identifiers where the Rust
+  ecosystem uses them.
+- Library errors either show their cause in their message or return it
+  from `source()`, never both (the CLI prints the whole chain).
+
+## Tests and hardware
+
+- Prefer the simulator: CLI tests in `crates/lumina-cli/src/commands.rs`
+  run commands against `Simulator`, which mimics the firmware (including
+  standby and the Bluetooth-only pairing rule). When you learn new device
+  behaviour, update the simulator and `docs/protocol.md` together.
+- **Ask before touching real speakers.** They may be in use, held by
+  OpenRGB or passed through to a virtual machine. Even read-only commands
+  can fail with "cannot open the speakers' control interface" then; don't
+  try to free the device yourself.
+- Run hardware tests one step at a time and let the user observe and
+  confirm each one; sound and light effects can only be checked by a
+  person.
+- **Never run without explicit permission:**
+  - `lumina power standby`: the speakers stop answering on USB and only
+    their physical power button wakes them.
+  - `lumina factory-reset`: resets every setting and forgets Bluetooth
+    pairings.
+  - `lumina input usb` from another input: the speakers drop off USB and
+    reconnect about 20 seconds later.
+  - `lumina debug send` with unknown command IDs.
+- `just test-hardware` changes every reversible setting and restores it;
+  it still needs the user's go-ahead.
+
+## Protocol documentation
+
+`docs/protocol.md` tags each fact with its source: `[hw]` verified on the
+hardware, `[ear]` heard, `[eye]` seen, `[app]` read from Klipsch Control,
+`[?]` unknown. Only use `[hw]`, `[ear]` or `[eye]` for what was actually
+observed, and say when something is untested. Klipsch Control's firmware
+update service is deliberately not used: don't add calls to Klipsch's web
+API or any API key.
+
+## Commits, changelog and releases
+
+- Commit or push only when asked.
+- Use [Conventional Commits](https://www.conventionalcommits.org/)
+  (`feat:`, `fix:`, `docs:`, `ci:`, ...): release-plz builds the changelog
+  and the next version from them. Write the subject for users.
+- Commits are authored by the human contributor alone: no
+  `Co-authored-by` trailers, "Generated with" footers or other AI
+  attribution, in commits, PRs, code or docs.
+- Don't edit `CHANGELOG.md` by hand; it is generated in the release PR.
+- `.github/workflows/release.yml` is generated by `dist generate` from
+  `dist-workspace.toml`; change the config, never the workflow.
+- Pin GitHub Actions to full commit SHAs with the version in a comment,
+  and prefer releases that are at least two weeks old.
+- Releasing is merging release-plz's PR; don't publish to crates.io or push
+  tags by hand.
