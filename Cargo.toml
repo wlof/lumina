@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/lumina", "crates/lumina-cli"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 # Checked in CI (msrv job); raise deliberately, never by accident.
 # 1.88: slice::as_chunks
@@ -15,7 +15,7 @@ keywords = ["klipsch", "speakers", "usb", "hid", "audio"]
 categories = ["hardware-support", "command-line-utilities"]
 
 [workspace.dependencies]
-klipsch-lumina = { path = "crates/lumina", version = "0.1.1" }
+klipsch-lumina = { path = "crates/lumina", version = "0.1.2" }
 # linux-static-libusb: interface 4 has no hidraw node on Linux. Other platforms
 # use their native back end (libusb via the system hidapi on FreeBSD).
 hidapi = { version = "2.6.7", default-features = false, features = ["linux-static-libusb"] }
