@@ -10,6 +10,10 @@ inputs:
     description: Extra key for the build cache
     required: false
     default: ""
+  cache:
+    description: Restore and save the build cache; "false" for jobs holding release credentials
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -31,6 +35,7 @@ runs:
         echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
         rustc --version
 
-    - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+    - if: inputs.cache == 'true'
+      uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       with:
         key: ${{ inputs.cache-key }}

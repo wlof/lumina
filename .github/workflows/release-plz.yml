@@ -25,6 +25,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup-rust
+        with:
+          # A poisoned cache must not reach a job that can publish
+          cache: "false"
       - uses: release-plz/action@b2baf303c463c223526d52a8a91b0777f052cf3f # v0.5.146
         with:
           command: release
@@ -49,6 +52,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup-rust
+        with:
+          # A poisoned cache must not reach a job that can publish
+          cache: "false"
       - uses: release-plz/action@b2baf303c463c223526d52a8a91b0777f052cf3f # v0.5.146
         with:
           command: release-pr
