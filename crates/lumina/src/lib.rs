@@ -50,6 +50,8 @@ pub type HidError = Box<dyn std::error::Error + Send + Sync + 'static>;
 /// Everything that can go wrong talking to the speakers.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
+// Variants wrapping a HID error return it from `source()` and leave it out of
+// their message, so error reports that print the chain show it only once.
 pub enum Error {
     /// No Lumina is connected, or none with the requested serial number.
     #[error("no Klipsch ProMedia Lumina found")]
@@ -57,13 +59,13 @@ pub enum Error {
 
     /// The control interface could not be opened. On Linux and FreeBSD this
     /// usually means OpenRGB or a virtual machine holds it.
-    #[error("cannot open the speakers' control interface; is OpenRGB or a VM using it? ({0})")]
+    #[error("cannot open the speakers' control interface (is OpenRGB or a VM using it?)")]
     Busy(#[source] HidError),
 
     /// A transfer failed: the speakers are in standby, which only their
     /// power button ends, or were disconnected.
     #[error(
-        "speakers did not respond; they may be in standby (press the power button) or disconnected ({0})"
+        "speakers did not respond; they may be in standby (press the power button) or disconnected"
     )]
     NoResponse(#[source] HidError),
 
@@ -73,7 +75,7 @@ pub enum Error {
     Reconnecting,
 
     /// The HID layer could not be initialised.
-    #[error("cannot initialise HID access: {0}")]
+    #[error("cannot initialise HID access")]
     Hid(#[source] HidError),
 
     /// A value is outside what the speakers (or Klipsch Control) accept.
@@ -96,4 +98,26 @@ pub enum Error {
     /// does so while booting.
     #[error("device did not return a state report")]
     NoState,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::error::Error as _;
+
+    use super::*;
+
+    #[test]
+    fn hid_errors_are_reported_once() {
+        for err in [
+            Error::Busy("device busy".into()),
+            Error::NoResponse("device busy".into()),
+            Error::Hid("device busy".into()),
+        ] {
+            assert!(!err.to_string().contains("device busy"), "{err}");
+            assert_eq!(
+                err.source().map(ToString::to_string).as_deref(),
+                Some("device busy")
+            );
+        }
+    }
 }
