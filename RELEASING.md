@@ -34,8 +34,6 @@ Dependabot skips `release.yml`, so its action pins are in
 - **`release` environment** (Settings → Environments), used by the publish
   job. Optionally add yourself as a required reviewer so every publish
   needs an approval.
-- **Settings → Actions → General**: allow GitHub Actions to create pull
-  requests.
 - **crates.io trusted publishing**, once the crates exist (see below): for
   each crate, Settings → Trusted Publishing → add GitHub with repository
   `wlof/lumina`, workflow `release-plz.yml` and environment `release`. No
