@@ -168,12 +168,12 @@ of range are refused before anything is sent.
 
 ## Library
 
-The CLI is built on the `lumina` library crate
+The CLI is built on the `klipsch-lumina` library
 ([crates/lumina](crates/lumina)), which other front ends can use directly:
 `Lumina::open` finds the speakers, typed setters change settings and
 `state()` reads them all back. Its `sim` feature provides a simulated device
 that behaves like the real speakers, for developing and testing without
-hardware. `cargo doc --open -p lumina` shows the API.
+hardware. `cargo doc --open -p klipsch-lumina` shows the API.
 
 ## Development
 

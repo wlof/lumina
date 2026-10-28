@@ -1,0 +1,28 @@
+# release-plz: opens a release PR (version bump and changelog); merging it
+# publishes to crates.io and pushes the vX.Y.Z tag that release.yml (dist)
+# turns into a GitHub Release with binaries.
+
+[workspace]
+# Only the CLI package writes the changelog and the tag, for both crates
+changelog_update = false
+git_tag_enable = false
+# dist creates the GitHub Release from the tag
+git_release_enable = false
+# Lock file updates come from Dependabot
+dependencies_update = false
+pr_labels = ["release"]
+# Publish only when a release PR is merged, not on every push to main
+release_always = false
+
+[[package]]
+name = "klipsch-lumina"
+version_group = "lumina"
+
+[[package]]
+name = "klipsch-lumina-cli"
+version_group = "lumina"
+changelog_update = true
+changelog_path = "CHANGELOG.md"
+changelog_include = ["klipsch-lumina"]
+git_tag_enable = true
+git_tag_name = "v{{ version }}"

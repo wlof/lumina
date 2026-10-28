@@ -12,6 +12,9 @@ uses [Semantic Versioning](https://semver.org/).
   presets, sound mode, subwoofer level, night mode, mute, UI tones, auto
   standby, input, Bluetooth pairing, standby, factory reset, lighting modes
   and per-LED colours.
-- `lumina` library with typed setters, state decoding and a device
+- `klipsch-lumina` library with typed setters, state decoding and a device
   simulator (`sim` feature).
 - Protocol notes in `docs/protocol.md`.
+- Published on crates.io as `klipsch-lumina` (library) and
+  `klipsch-lumina-cli` (the `lumina` binary); prebuilt binaries for
+  Linux, macOS and Windows on GitHub Releases.

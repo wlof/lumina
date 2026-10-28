@@ -3,9 +3,9 @@
 
 use std::fmt::{Display, Write as _};
 
-use lumina::eq::{self, Preset};
-use lumina::light::{AuroraTone, MusicReactPreset};
-use lumina::{LightMode, State};
+use klipsch_lumina::eq::{self, Preset};
+use klipsch_lumina::light::{AuroraTone, MusicReactPreset};
+use klipsch_lumina::{LightMode, State};
 
 /// The full `lumina status` view.
 pub(crate) fn status(s: &State) -> String {
@@ -134,7 +134,7 @@ pub(crate) fn hexdump(s: &State) -> String {
 
 #[cfg(test)]
 mod tests {
-    use lumina::Rgb;
+    use klipsch_lumina::Rgb;
 
     use super::*;
 

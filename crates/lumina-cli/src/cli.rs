@@ -3,9 +3,9 @@
 use std::str::FromStr;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use lumina::eq::Preset;
-use lumina::light::{AuroraTone, MusicReactPreset};
-use lumina::{FirmwarePreset, InputSource, Rgb, SoundMode};
+use klipsch_lumina::eq::Preset;
+use klipsch_lumina::light::{AuroraTone, MusicReactPreset};
+use klipsch_lumina::{FirmwarePreset, InputSource, Rgb, SoundMode};
 
 /// Control Klipsch ProMedia Lumina speakers.
 ///
@@ -233,8 +233,8 @@ pub(crate) enum MuteArg {
     Toggle,
 }
 
-fn parse<T: FromStr<Err = lumina::Error>>(s: &str) -> Result<T, String> {
-    s.parse().map_err(|e: lumina::Error| e.to_string())
+fn parse<T: FromStr<Err = klipsch_lumina::Error>>(s: &str) -> Result<T, String> {
+    s.parse().map_err(|e: klipsch_lumina::Error| e.to_string())
 }
 
 /// A hex byte, with or without `0x`.
