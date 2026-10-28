@@ -203,10 +203,12 @@ All verified on the hardware with `lumina light` and checked by eye.
 - **Direct (mode 7, "Screen React"):** CustomLightingMode (0x11) frames of
   12 × RGB. The firmware shows white and ignores frames until the host has
   written LampArrayControl (feature report ID 6, AutonomousMode = 1) on
-  interface 5; Windows' DWM does this itself. Sequence: mode 7, 300 ms,
-  state request and read, LampArrayControl, 200 ms, frame. Frames closer
-  than ~5 ms make the firmware drop to white; 20–50 ms spacing works. A
-  frame stays on the LEDs after the host closes the device.
+  interface 5. Windows' DWM does this itself, so `lumina` skips it there;
+  per-LED colours showed correctly on Windows 10 with Klipsch Control
+  running [hw, eye]. Sequence: mode 7, 300 ms, state request and read,
+  LampArrayControl, 200 ms, frame. Frames closer than ~5 ms make the
+  firmware drop to white; 20–50 ms spacing works. A frame stays on the LEDs
+  after the host closes the device.
   LampArrayControl with AutonomousMode = 0 makes the firmware jump to mode 8
   (Dynamic Lighting).
 - **LED order in a frame:** left satellite first (left as seen facing the
@@ -248,4 +250,4 @@ All verified on the hardware with `lumina light` and checked by eye.
 On Linux and FreeBSD only one process can claim interface 4. A running
 OpenRGB instance with the Lumina detector holds it, and a VM with the
 device passed through holds the whole device. On Windows the HID handle
-is shared.
+is shared: `lumina` works while Klipsch Control runs [hw].

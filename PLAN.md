@@ -51,7 +51,7 @@ on interface 4. Only interface 4 is opened, so audio playback
 |----------|-----------------|---------------------------------------|--------|
 | Linux | libusb, bundled hidapi (no hidraw node for interface 4) | no, exclusive claim | works |
 | FreeBSD | libusb, system `hidapi` package | no, exclusive claim | builds and passes CI; hardware test pending (FreeBSD VM) |
-| Windows | hid.dll | yes | builds and passes CI; hardware test pending (Win10 VM) |
+| Windows | hid.dll | yes | works: v0.1.1 release tested in the Win10 VM (status, lighting, per-LED) |
 | macOS | IOKit, opened non-exclusive | only if the other side is non-exclusive too | builds and passes CI; no hardware to test, unknown whether IOKit exposes the endpoint-less interface |
 
 `nusb` was tried first and dropped: it needs WinUSB on Windows, cannot
@@ -153,7 +153,7 @@ RELEASING.md.
 
 ### 4. Portability and packaging
 
-- Test the Windows and FreeBSD builds with the speakers in the VMs
+- Test the FreeBSD build with the speakers in the VM (Windows: done, v0.1.1)
 - Shell completions and man page via `clap_complete` / `clap_mangen`,
   included in the release archives
 - PKGBUILD (AUR), possibly other distribution packages

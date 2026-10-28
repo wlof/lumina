@@ -7,8 +7,8 @@
 
 Control your **Klipsch ProMedia Lumina 2.1** speakers from the command line:
 EQ, sound mode, subwoofer level, night mode, input, lighting and the other
-settings of Klipsch's Windows-only app, Klipsch Control. Works on Linux, and
-builds for macOS, Windows and FreeBSD.
+settings of Klipsch's Windows-only app, Klipsch Control. Works on Linux and
+Windows, and builds for macOS and FreeBSD.
 
 ```console
 $ lumina eq preset bass
@@ -88,11 +88,11 @@ The rule is also in the release archives and in `udev/` in this repository.
 | Platform | Status |
 |----------|--------|
 | Linux | Tested with real speakers |
-| Windows | Builds and passes the tests; not yet tried with real speakers |
+| Windows | Tested with real speakers (Windows 10); works alongside Klipsch Control |
 | macOS | Builds and passes the tests; not yet tried with real speakers, and macOS may not let programs reach the speakers' control interface |
 | FreeBSD | Builds and passes the tests; not yet tried with real speakers; build it with Cargo |
 
-If you try `lumina` on Windows, macOS or FreeBSD, please
+If you try `lumina` on macOS or FreeBSD, please
 [open an issue](https://github.com/wlof/lumina/issues) with the result.
 
 ## Usage
