@@ -212,7 +212,11 @@ fn run_eq<T: Transport>(l: &mut Lumina<T>, cmd: EqCmd) -> Result<String> {
             b.gain = gain.unwrap_or(b.gain);
             b.q = q.unwrap_or(b.q);
             l.set_bands(&bands)?;
-            Ok(render::bands(&l.state()?))
+            let s = l.state()?;
+            // Compare at the wire's resolution: Q in 1/1024, gain in 1/256 dB
+            let want = eq::decode(eq::encode(&bands)?);
+            check(Some(want), Some(s.bands), "bands")?;
+            Ok(render::bands(&s))
         }
         EqCmd::Reset => {
             l.set_bands(&eq::DEVICE_DEFAULT)?;
