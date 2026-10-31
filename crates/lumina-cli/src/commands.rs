@@ -269,12 +269,25 @@ fn run_light<T: Transport>(l: &mut Lumina<T>, cmd: Option<&LightCmd>) -> Result<
             l.set_leds(&light::expand(colors)?)?;
             (Some(LightMode::Direct), None)
         }
+        Some(&LightCmd::Brightness { percent }) => return brightness(l, percent),
     };
 
     let s = l.state()?;
     check(mode, s.light_mode, "light mode")?;
     check(colors, Some(s.light_colors), "light colours")?;
     Ok(format!("Light: {}\n", render::light(&s)))
+}
+
+fn brightness<T: Transport>(l: &mut Lumina<T>, percent: Option<u8>) -> Result<String> {
+    if let Some(p) = percent {
+        l.set_brightness(p)?;
+    }
+    let s = l.state()?;
+    check(percent, s.brightness, "brightness")?;
+    Ok(format!(
+        "Brightness: {}\n",
+        render::brightness(s.brightness)
+    ))
 }
 
 /// Fail if the speakers report something other than what was asked.
@@ -452,6 +465,15 @@ mod tests {
             "Light: music-react red-pink\n"
         );
         assert_eq!(run_ok(&["light", "rainbow"]).0, "Light: rainbow\n");
+        assert_eq!(run_ok(&["light", "brightness"]).0, "Brightness: 100%\n");
+        let (out, mut l) = run_ok(&["light", "brightness", "30"]);
+        assert_eq!(out, "Brightness: 30%\n");
+        assert_eq!(l.state().unwrap().brightness, Some(30));
+        assert!(
+            run_on(Simulator::new(), &["light", "brightness", "101"])
+                .0
+                .is_err()
+        );
         assert_eq!(run_ok(&["light", "off"]).0, "Light: off\n");
         assert!(
             run_on(Simulator::new(), &["light", "leds", "red", "green", "blue"])

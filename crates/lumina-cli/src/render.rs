@@ -24,6 +24,7 @@ pub(crate) fn status(s: &State) -> String {
     field(&mut out, "Auto standby", auto_standby(s));
     field(&mut out, "Bluetooth", bluetooth(s));
     field(&mut out, "Light", light(s));
+    field(&mut out, "Brightness", brightness(s.brightness));
     out
 }
 
@@ -101,6 +102,10 @@ pub(crate) fn bluetooth(s: &State) -> String {
     format!("{} ({})", opt(s.bt_pairing), s.bt_mac)
 }
 
+pub(crate) fn brightness(percent: Option<u8>) -> String {
+    percent.map_or_else(|| "unknown".into(), |p| format!("{p}%"))
+}
+
 pub(crate) fn sub_level(db: Option<i8>) -> String {
     db.map_or_else(|| "unknown".into(), |db| format!("{db:+} dB"))
 }
@@ -169,6 +174,7 @@ UI tones:       on
 Auto standby:   on (after 15 min)
 Bluetooth:      off (02:00:00:00:00:01)
 Light:          static #ff00ff
+Brightness:     100%
 "
         );
     }

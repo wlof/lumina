@@ -27,6 +27,7 @@ Klipsch Control 1.11.0 exposes these through the vendor protocol:
 | Factory reset | 0x19 | yes, behind `--yes` |
 | Device info (serial, firmware, BT MAC) | state report | yes |
 | Lighting modes, colours, per-LED | 0x0B, 0x11, 0x1A | yes (added after phase 3) |
+| LED brightness | 0x0F | yes; the encoding (selector, then 0–100) was found after phase 3 |
 | Screen React (screen sampling) | 0x11 stream | later, needs a long-running process |
 
 Master volume stays out of scope: Klipsch Control itself sets the OS volume

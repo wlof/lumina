@@ -22,8 +22,8 @@ USB `18b5:0070`, full speed, one configuration, six interfaces:
 | 0 | Audio control | Feature unit 2 (speaker): mute + per-channel volume. Feature unit 5 (mic). |
 | 1 | Audio streaming | Playback, 16-bit stereo, 44.1/48 kHz, EP 5 OUT isochronous |
 | 2 | Audio streaming | Capture, 16-bit stereo, 44.1/48 kHz, EP 4 IN isochronous |
-| 3 | HID | EP 1 IN interrupt, 33-byte report descriptor [?] (likely consumer keys) |
-| 4 | HID, page FF00 | **Vendor command channel**, no endpoint |
+| 3 | HID | EP 1 IN interrupt, media keys, see HID descriptors |
+| 4 | HID, page FF00 usage 55AA | **Vendor command channel**, no endpoint |
 | 5 | HID, page 0x59 | LampArray (1 lamp), no endpoint. Lighting only. |
 
 Interfaces 4 and 5 have no interrupt endpoint, so Linux `usbhid` does not
@@ -40,6 +40,40 @@ and FreeBSD hidapi's libusb back end issues the control transfers itself.
 
 Byte offsets below are into the report as on the wire. A hidapi buffer is
 one byte longer (report ID 0 first), so its offsets are one higher.
+
+### HID descriptors [hw]
+
+Read with `lsusb -v` and from sysfs (interface 3), and the LampArray
+feature reports with `GET_REPORT` (`wValue 0x03nn`).
+
+- **Interface 3:** Consumer Control, no report ID, one 8-bit input report,
+  one bit per key: Volume Up, Volume Down, Next Track, Previous Track,
+  Mute, Fast Forward, Play/Pause, Stop. The speakers have no remote. The
+  volume buttons send Volume Up and Volume Down, one press report followed
+  at once by a release (`00`); the host's volume changes with them. The
+  input button sends nothing: input changes only show in the state
+  report. The other six keys have no known button. USB serial string
+  `20190808`, the same field as `HID_UNIQ`.
+- **Interface 4:** 256-byte input (the state report), 256-byte output
+  (command frames) and an 8-byte feature report, all without report ID.
+  The feature report is not implemented: `GET_REPORT` returns as many bytes
+  as requested (256 tried), starting with the request's own setup packet
+  and followed by unrelated buffer contents. `lumina` does not use it;
+  whether Klipsch Control does is unknown [?]. The pointers in that data
+  fall in `0x2000_0000`, which suggests an ARM Cortex-M controller [?].
+- **Interface 5:** standard LampArray, reports 1–6 (attributes, lamp
+  attributes request and response, multi update, range update, control).
+  Only report 6 (LampArrayControl) is used, see Lighting. Reports 4 and 5
+  are untested.
+
+LampArrayAttributes (report 1): 1 lamp, bounding box 100 × 100 × 100 mm,
+LampArrayKind 13, MinUpdateInterval 50 ms.
+
+LampAttributesResponse (report 3, lamp 0, read without writing report 2):
+position (0, 50, 50) mm, update latency 50 ms, purposes 0x20
+(Presentation), 255 levels for red, green and blue, 100 intensity levels,
+programmable, no input binding. Windows Dynamic Lighting therefore sees
+the speakers as one lamp, while CustomLightingMode drives 12 LEDs.
 
 ## Frames [hw]
 
@@ -84,7 +118,7 @@ them to a dump.
 | 45 | 1 | PowerState | 1 = on; unreadable in standby | [hw] |
 | 46 | 1 | OperatingMode | 0 seen | [?] |
 | 47 | 2 | AutoStandbyTimeout | seconds, u16 LE (900 seen) | [hw] |
-| 49 | 2 | LedLevel | 100, 100 seen | [app] |
+| 49 | 2 | LedLevel | LED brightness 0–100, the same value in both bytes (100, 66, 33, 0 from the button) | [hw] |
 | 51 | 1 | UITones ("Function Sound") | 0/1 | [hw] |
 | 52 | 1 | NewLightModeToggle | | [app] |
 | 53 | 6 | CustomRGB (primary, secondary) | cleared by a light mode change | [hw] |
@@ -123,7 +157,7 @@ Payloads are 1 byte unless noted [app].
 | 0x0B | LightMode | 1 Rainbow, 2 Breathe, 3 Static, 4 Aurora, 5 Music React, 6 Off, 7 Screen React, 8 Dynamic Lighting | [hw] |
 | 0x0C | Mute | 0/1 | [hw, ear] |
 | 0x0D | NightMode | 0/1 ("turns bass output down by 50%") | [hw, ear] |
-| 0x0F | LedLevel | 2 bytes; no visible effect | [hw] |
+| 0x0F | LedLevel | 2 bytes: selector (1 or 2), brightness 0–100. Anything else is ignored. See Lighting | [hw, eye] |
 | 0x10 | UiTones | 0/1 | [hw] |
 | 0x11 | CustomLightingMode | 36 bytes, 12 × RGB | [hw] |
 | 0x14 | AutoStandby | 0/1 | [hw] |
@@ -193,7 +227,8 @@ All verified on the hardware with `lumina light` and checked by eye.
   different secondary still breathes the primary alone.
 - **Aurora:** Klipsch Control offers two pairs: cool `0000FF`/`00FFFF`
   (blue/cyan) and warm `FF0000`/`FF7F00` (red/orange) [app]. Both drift as
-  expected.
+  expected. Other pairs are stored and read back, but the satellites show
+  the cool animation (`FF00FF`/`00FF00` tried) [hw, eye].
 - **Music React:** only the app's pairs render (default `000000`/`000000`
   cycles through several colours; blue/purple `0000FF`/`FF00FF`, cyan/blue
   `00FFFF`/`0000FF`, red/pink `FF0000`/`FF007F`, yellow/orange
@@ -214,7 +249,27 @@ All verified on the hardware with `lumina light` and checked by eye.
 - **LED order in a frame:** left satellite first (left as seen facing the
   speakers), each as top 1–3 then bottom 1–3. Seen from the front the top
   row runs 1, 2, 3 left to right and the bottom row 1, 3, 2.
-- **LedLevel (0x0F)** has no visible effect, also in Klipsch Control.
+- **Brightness.** LedLevel is the satellites' LED brightness, 0–100; the
+  small front LED does not change. The light button's short press steps
+  it high, medium, low, off (state 100, 66, 33, 0) and back to high. The
+  LedLevel command (0x0F) takes two bytes: a selector, 1 or 2, then the
+  brightness. Both bytes of the state then show the brightness, e.g.
+  `01 32` gives 50, 50 and visibly half brightness. Swept with state
+  readback: selectors 0, 3 and 255 are ignored, and with selector 1 every
+  brightness 0–100 is stored and 101–255 ignored [hw, eye]. Selectors 1
+  and 2 look the same and both survive a power cycle (30 with selector 1,
+  then 60 with selector 2, each read back after power-cycling) [hw];
+  untested in Screen React and Dynamic Lighting, what distinguishes them
+  is not known [?]. Sending
+  the same value twice changes nothing, so it is a level, not a step.
+  Earlier tests sent the brightness in both bytes, which only works for
+  1 and 2 and made the command look ineffective. Klipsch Control's
+  brightness setting showed no visible effect either; what it sends is
+  not known.
+- **Light button.** A long press (over 1 s) steps LightMode 1–6 in
+  order (rainbow, breathe, static, aurora, music react, off), never 7 or
+  8, and leaves CustomRGB untouched. Neither press sends a HID report
+  [hw, eye].
 
 ## Timing quirks [hw]
 
@@ -228,6 +283,15 @@ All verified on the hardware with `lumina light` and checked by eye.
   error. PipeWire recreates the sink about 20 s after the command. Sending
   USB PC while already on USB PC, and switching to Aux, keep the
   connection. All settings survive the re-enumeration [hw].
+- The input button cycles USB, Bluetooth, Aux. As with the command, only
+  the switch from Aux back to USB re-enumerates the device: the HID
+  interfaces are back about 6 s after the disconnect, the state report
+  about 12 s later again, and the sound returns 5–10 s after the switch
+  [hw, ear]. Switching to Bluetooth with the button enters pairing
+  (BtPairingStatus 1) at once; leaving Bluetooth sets it back to 0 [hw].
+  One earlier round showed an extra disconnect, not reproduced [?].
+- The front LED shows the input: white for USB, blue for Bluetooth
+  (blinking while not paired), green for Aux [eye].
 - PowerState 0 puts the speakers in standby: lights off. The device stays
   enumerated, but its USB controller stops answering anything except the
   bus-level presence [hw]:

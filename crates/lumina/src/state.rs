@@ -32,6 +32,7 @@ const PEQ_MODE: usize = 43;
 const AUTO_STANDBY: usize = 44;
 const POWER_STATE: usize = 45;
 const AUTO_STANDBY_TIMEOUT: usize = 47;
+const LED_LEVEL: usize = 49;
 const UI_TONES: usize = 51;
 const PRIMARY_RGB: usize = 53;
 const SECONDARY_RGB: usize = 56;
@@ -99,6 +100,9 @@ pub struct State {
     /// Primary and secondary colour used by Static, Breathe, Aurora and
     /// Music React. Cleared by every light mode change.
     pub light_colors: (Rgb, Rgb),
+    /// LED brightness of the satellites in percent, `None` outside
+    /// 0–100. The light button steps it through 100, 66, 33 and 0.
+    pub brightness: Option<u8>,
     /// Whole report, zero padded, for fields not decoded.
     #[cfg_attr(feature = "serde", serde(skip))]
     pub raw: Report,
@@ -150,6 +154,7 @@ impl State {
                 array(&raw, PRIMARY_RGB).into(),
                 array(&raw, SECONDARY_RGB).into(),
             ),
+            brightness: Some(raw[LED_LEVEL]).filter(|b| types::BRIGHTNESS_RANGE.contains(b)),
             raw,
         })
     }
@@ -214,6 +219,14 @@ pub(crate) mod tests {
         assert!(s.ui_tones);
         assert_eq!(s.light_mode, Some(LightMode::Static));
         assert_eq!(s.light_colors, (Rgb(255, 0, 255), Rgb(255, 0, 255)));
+        assert_eq!(s.brightness, Some(100));
+    }
+
+    #[test]
+    fn rejects_brightness_out_of_range() {
+        let mut report = sample();
+        report[LED_LEVEL] = 101;
+        assert_eq!(State::parse(&report).unwrap().brightness, None);
     }
 
     #[test]
