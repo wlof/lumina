@@ -176,6 +176,13 @@ pub(crate) enum LightCmd {
     /// LEDs off.
     Off,
 
+    /// LED brightness of the satellites in percent, 0 to 100. Kept across
+    /// power cycles.
+    Brightness {
+        #[arg(value_name = "PERCENT")]
+        percent: Option<u8>,
+    },
+
     /// Set the LEDs individually: 1 colour for all, 2 (left and right
     /// satellite), 4 (left top, left bottom, right top, right bottom) or 12
     /// (each satellite top row then bottom row, left to right as seen from

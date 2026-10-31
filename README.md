@@ -35,6 +35,7 @@ UI tones:       on
 Auto standby:   on (after 15 min)
 Bluetooth:      off (02:00:00:00:00:01)
 Light:          static #ff7f00
+Brightness:     100%
 ```
 
 ## Install
@@ -154,7 +155,7 @@ or `ff7f00`).
 | Off | `lumina light off` | |
 | Per-LED colours *(lumina only)* | `lumina light leds red blue` | See below |
 | Screen React | Not supported | `light leds` shows fixed colours; following the screen is not implemented |
-| LED brightness | Not supported | The speakers ignore it, in the app too |
+| LED brightness | `lumina light brightness 50` | 0–100 %, kept across power cycles. The light button's short press steps through 100, 66, 33 and 0 |
 | Windows Dynamic Lighting | Not supported | Windows only |
 
 `light leds` takes 1, 2, 4 or 12 colours: one for all LEDs; left and right

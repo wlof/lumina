@@ -21,6 +21,10 @@ const FRAME_INTERVAL: Duration = Duration::from_millis(50);
 
 /// After a light mode change, before colours or the LED unlock.
 const MODE_DELAY: Duration = Duration::from_millis(300);
+/// First byte of a `LedLevel` frame. The firmware accepts 1 and 2, which
+/// behave alike as far as is known.
+const LED_LEVEL_SELECTOR: u8 = 1;
+
 /// After the LED unlock, before the first per-LED frame.
 const UNLOCK_DELAY: Duration = Duration::from_millis(200);
 
@@ -161,12 +165,25 @@ impl<T: Transport> Lumina<T> {
     }
 
     /// Primary and secondary colour for Static, Breathe, Aurora and Music
-    /// React. Static and Breathe show only the primary.
+    /// React. Static and Breathe show only the primary; Aurora and Music
+    /// React render only Klipsch Control's pairs ([`AuroraTone`],
+    /// [`MusicReactPreset`]) and ignore any other pair, which is still
+    /// stored. Aurora then shows its cool animation.
     pub fn set_light_colors(&mut self, primary: Rgb, secondary: Rgb) -> Result<(), Error> {
         let mut data = [0u8; 6];
         data[..3].copy_from_slice(&primary.bytes());
         data[3..].copy_from_slice(&secondary.bytes());
         self.send(Command::CustomRgb, &data)
+    }
+
+    /// LED brightness of the satellites in percent, within
+    /// [`BRIGHTNESS_RANGE`](crate::BRIGHTNESS_RANGE). Kept across power
+    /// cycles; the light button changes it too.
+    pub fn set_brightness(&mut self, percent: u8) -> Result<(), Error> {
+        if !types::BRIGHTNESS_RANGE.contains(&percent) {
+            return Err(Error::OutOfRange("brightness", format!("{percent}%")));
+        }
+        self.send(Command::LedLevel, &[LED_LEVEL_SELECTOR, percent])
     }
 
     /// Steady colour.
@@ -300,6 +317,7 @@ mod tests {
         l.set_auto_standby_timeout(900).unwrap();
         l.set_input(InputSource::Aux).unwrap();
         l.set_bt_pairing(true).unwrap();
+        l.set_brightness(30).unwrap();
         l.standby().unwrap();
 
         assert_eq!(
@@ -315,6 +333,7 @@ mod tests {
                 (0x18, vec![0x84, 0x03]),
                 (0x01, vec![1]),
                 (0x02, vec![1]),
+                (0x0F, vec![1, 30]),
                 (0x16, vec![0]),
             ]
         );
@@ -338,6 +357,7 @@ mod tests {
         let mut l = lumina();
         assert!(l.set_sub_level(11).is_err());
         assert!(l.set_auto_standby_timeout(10).is_err());
+        assert!(l.set_brightness(101).is_err());
         assert_eq!(l.transport.written.len(), 0);
     }
 

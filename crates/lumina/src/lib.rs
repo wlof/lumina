@@ -39,8 +39,8 @@ pub use eq::{Band, Bands};
 pub use state::State;
 pub use transport::{HidTransport, PID, Transport, VID};
 pub use types::{
-    BtPairing, FirmwarePreset, InputSource, LightMode, STANDBY_TIMEOUT_RANGE, SUB_LEVEL_RANGE,
-    SoundMode,
+    BRIGHTNESS_RANGE, BtPairing, FirmwarePreset, InputSource, LightMode, STANDBY_TIMEOUT_RANGE,
+    SUB_LEVEL_RANGE, SoundMode,
 };
 
 /// Error source from the platform's HID layer, kept opaque so that the HID

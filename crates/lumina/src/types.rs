@@ -175,6 +175,9 @@ pub(crate) fn sub_level_from_byte(value: u8) -> Option<i8> {
     SUB_LEVEL_RANGE.contains(&db).then_some(db)
 }
 
+/// LED brightness of the satellites, in percent.
+pub const BRIGHTNESS_RANGE: RangeInclusive<u8> = 0..=100;
+
 /// Accepted auto standby delays, in seconds. Klipsch Control offers 2, 5, 10
 /// and 15 minutes; the device takes any u16.
 pub const STANDBY_TIMEOUT_RANGE: RangeInclusive<u16> = 60..=3600;

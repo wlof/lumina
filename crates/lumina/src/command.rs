@@ -34,7 +34,7 @@ pub enum Command {
     Mute = 0x0C,
     /// 0 or 1.
     NightMode = 0x0D,
-    /// 2 bytes. Brightness; accepted but has no visible effect.
+    /// 2 bytes: selector (1 or 2), then LED brightness 0–100.
     LedLevel = 0x0F,
     /// Button and status tones, 0 or 1.
     UiTones = 0x10,

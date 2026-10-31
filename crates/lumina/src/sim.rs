@@ -94,6 +94,14 @@ impl Simulator {
             }
             c if c == Command::Mute.id() => s[39] = byte,
             c if c == Command::NightMode.id() => s[40] = byte,
+            // Selector 1 or 2, then the brightness; both state bytes follow
+            c if c == Command::LedLevel.id()
+                && data.len() == 2
+                && (1..=2).contains(&data[0])
+                && data[1] <= 100 =>
+            {
+                s[49..51].fill(data[1]);
+            }
             c if c == Command::UiTones.id() => s[51] = byte,
             c if c == Command::CustomLighting.id() && data.len() == 36 => {
                 // Shown only in Direct mode, after the unlock
@@ -188,6 +196,17 @@ mod tests {
         assert_eq!(s.eq_preset, Some(Preset::Bass));
         assert_eq!(s.light_mode, Some(LightMode::Aurora));
         assert_eq!(s.light_colors, AuroraTone::Warm.colors());
+    }
+
+    #[test]
+    fn sets_brightness_like_the_firmware() {
+        let mut l = speakers();
+        l.set_brightness(30).unwrap();
+        assert_eq!(l.state().unwrap().brightness, Some(30));
+        // The firmware ignores other selectors and levels over 100
+        l.send_raw(Command::LedLevel.id(), &[3, 50]).unwrap();
+        l.send_raw(Command::LedLevel.id(), &[1, 101]).unwrap();
+        assert_eq!(l.state().unwrap().brightness, Some(30));
     }
 
     #[test]
